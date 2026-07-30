@@ -1,8 +1,23 @@
+# Jupyter
 .ipynb_checkpoints/
+
+# Python
 __pycache__/
+*.pyc
+
+# Editor
 .vscode/
+
+# Virtual environments
 venv/
+credit_risk_proj/
+
+# Django
 db.sqlite3
 .env
-Model/credit_risk_model.pkl
-Model/credit_risk_scored.csv
+
+# Data files (anywhere in the repo)
+*.csv
+
+# Trained models (anywhere in the repo)
+*.pkl
