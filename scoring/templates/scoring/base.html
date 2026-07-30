@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}RiskLens{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --red: #A6192E;
+            --red-dark: #7D1224;
+            --red-light: #FBEAEC;
+            --gold: #C9A227;
+            --gold-light: #FBF3DC;
+            --bg: #FAF9F7;
+            --card: #FFFFFF;
+            --border: #ECE6DC;
+            --text: #201B17;
+            --text-muted: #6B6258;
+
+            --high: #D92D3F;
+            --high-bg: #FDEAEC;
+            --medium: #DDA524;
+            --medium-bg: #FBF2DD;
+            --low: #1F9D55;
+            --low-bg: #E7F6ED;
+            --unscored: #9C948A;
+            --unscored-bg: #F1EEE9;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Manrope', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--card);
+            border-bottom: 3px solid var(--gold);
+            padding: 0 40px;
+            height: 72px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 2px 14px rgba(0,0,0,0.04);
+        }
+
+        .navbar .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .navbar .logo-badge {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--red), var(--red-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gold);
+            font-weight: 800;
+            font-size: 16px;
+            letter-spacing: -0.02em;
+            flex-shrink: 0;
+        }
+
+        .navbar .brand-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.15;
+        }
+
+        .navbar .brand-text .name {
+            font-weight: 800;
+            font-size: 16px;
+            color: var(--red);
+            letter-spacing: -0.01em;
+        }
+
+        .navbar .brand-text .tagline {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        .navbar nav {
+            display: flex;
+            gap: 6px;
+        }
+
+        .navbar nav a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 14px;
+            padding: 9px 18px;
+            border-radius: 8px;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .navbar nav a:hover { background: var(--gold-light); color: var(--red); }
+
+        .navbar nav a.active {
+            background: var(--red);
+            color: #fff;
+        }
+
+        main {
+            max-width: 1040px;
+            margin: 0 auto;
+            padding: 40px 32px 60px;
+        }
+
+        h1 {
+            font-size: 27px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin: 0 0 6px 0;
+            color: var(--text);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin: 0 0 32px 0;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 6px 24px rgba(32, 27, 23, 0.05);
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+
+        .card.floating:hover {
+            box-shadow: 0 14px 36px rgba(32, 27, 23, 0.10);
+            transform: translateY(-2px);
+        }
+
+        input[type=text] {
+            font-family: 'IBM Plex Mono', monospace;
+            padding: 12px 16px;
+            width: 260px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            background: var(--bg);
+        }
+        input[type=text]:focus {
+            border-color: var(--red);
+            box-shadow: 0 0 0 3px var(--red-light);
+            background: #fff;
+        }
+
+        button {
+            font-family: 'Manrope', sans-serif;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            background: var(--red);
+            color: #fff;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+        }
+        button:hover { background: var(--red-dark); }
+        button:active { transform: scale(0.98); }
+
+        .error-box {
+            margin-top: 18px;
+            padding: 14px 16px;
+            background: var(--high-bg);
+            border: 1px solid #F3C6CB;
+            border-radius: 10px;
+            color: #96222F;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .tier-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .tier-High { background: var(--high-bg); color: var(--high); }
+        .tier-Medium { background: var(--medium-bg); color: #A47A16; }
+        .tier-Low { background: var(--low-bg); color: var(--low); }
+        .tier-Unscored { background: var(--unscored-bg); color: var(--unscored); }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px 32px;
+            margin-top: 24px;
+        }
+
+        .detail-row .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .detail-row .value {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14.5px;
+            font-weight: 500;
+        }
+        .score-fill { border-radius: 5px; }
+.tier-fill-High { background: var(--high); }
+.tier-fill-Medium { background: var(--medium); }
+.tier-fill-Low { background: var(--low); }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="brand">
+            <div class="logo-badge">BM</div>
+            <div class="brand-text">
+                <span class="name">Banque Misr</span>
+                <span class="tagline">RiskLens — Customer Risk Scoring</span>
+            </div>
+        </div>
+        <nav>
+            <a href="{% url 'customer_lookup' %}" class="{% block nav_lookup %}{% endblock %}">Customer Lookup</a>
+            <a href="{% url 'dashboard' %}" class="{% block nav_dashboard %}{% endblock %}">Dashboard</a>
+        </nav>
+    </div>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

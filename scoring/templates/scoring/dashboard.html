@@ -1,45 +1,147 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Risk Dashboard</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 700px; margin: 60px auto; }
-        canvas { max-width: 500px; }
-    </style>
-</head>
-<body>
-    <h1>Customer Risk Dashboard</h1>
-    <canvas id="tierChart"></canvas>
+{% extends 'scoring/base.html' %}
+{% block title %}Dashboard — RiskLens{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
 
+{% block content %}
+    <h1>Risk Dashboard</h1>
+    <p class="subtitle">Portfolio-wide breakdown of customer risk tiers.</p>
+
+    <div id="summaryCards" style="display:flex; gap:14px; margin-bottom:24px;"></div>
+
+    <div class="card floating">
+        <h3 style="margin-top:0;">Customers per Risk Tier</h3>
+        <canvas id="tierChart" height="90"></canvas>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:20px;">
+        <div class="card floating">
+            <h3 style="margin-top:0;">Avg Loan % of Income by Tier</h3>
+            <canvas id="loanPctChart"></canvas>
+        </div>
+        <div class="card floating">
+            <h3 style="margin-top:0;">Avg Interest Rate by Tier</h3>
+            <canvas id="intRateChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card floating" style="margin-top:20px;">
+        <h3 style="margin-top:0;">Loan Grade Distribution within Each Tier</h3>
+        <canvas id="loanGradeChart" height="100"></canvas>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:20px;">
+        <div class="card floating">
+            <h3 style="margin-top:0;">Home Ownership (All Customers)</h3>
+            <canvas id="homeOwnershipChart"></canvas>
+        </div>
+        <div class="card floating">
+            <h3 style="margin-top:0;">Loan Intent — High Risk Customers Only</h3>
+            <canvas id="highRiskIntentChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card floating" style="margin-top:20px;">
+        <h3 style="margin-top:0;">Average Risk Score by Age Group</h3>
+        <canvas id="ageGroupChart" height="90"></canvas>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
     <script>
+        const tierColors = { High: '#D92D3F', Medium: '#DDA524', Low: '#1F9D55', Unscored: '#9C948A' };
+        const palette = ['#A6192E', '#C9A227', '#1F9D55', '#DDA524', '#D92D3F', '#9C948A', '#7D1224'];
+
         fetch("{% url 'tier_counts_api' %}")
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
-                const labels = Object.keys(data);
-                const values = Object.values(data);
+                const order = ['Low', 'Medium', 'High', 'Unscored'];
+                const labels = order.filter(l => l in data);
+                const values = labels.map(l => data[l]);
+                const total = values.reduce((a, b) => a + b, 0);
+
+                const summaryEl = document.getElementById('summaryCards');
+                labels.forEach(label => {
+                    const count = data[label];
+                    const pct = total ? ((count / total) * 100).toFixed(1) : 0;
+                    summaryEl.innerHTML += `
+                        <div class="card floating" style="flex:1; padding:18px 20px;">
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                                <span style="width:9px; height:9px; border-radius:50%; background:${tierColors[label]}; display:inline-block;"></span>
+                                <span style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">${label}</span>
+                            </div>
+                            <div style="font-family:'IBM Plex Mono',monospace; font-size:26px; font-weight:600;">${count.toLocaleString()}</div>
+                            <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">${pct}% of portfolio</div>
+                        </div>`;
+                });
 
                 new Chart(document.getElementById('tierChart'), {
                     type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Number of Customers',
-                            data: values,
-                            backgroundColor: labels.map(l =>
-                                l === 'High' ? '#d9534f' :
-                                l === 'Medium' ? '#f0ad4e' :
-                                l === 'Low' ? '#5cb85c' : '#999999'
-                            )
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: { legend: { display: false } },
-                        scales: { y: { beginAtZero: true } }
-                    }
+                    data: { labels, datasets: [{ data: values, backgroundColor: labels.map(l => tierColors[l]), borderRadius: 6, maxBarThickness: 70 }] },
+                    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#F1EEE9' } }, x: { grid: { display: false } } } }
+                });
+            });
+
+        fetch("{% url 'tier_averages_api' %}")
+            .then(r => r.json())
+            .then(data => {
+                const labels = ['Low', 'Medium', 'High'].filter(t => t in data);
+                new Chart(document.getElementById('loanPctChart'), {
+                    type: 'bar',
+                    data: { labels, datasets: [{ data: labels.map(l => data[l].avg_loan_pct_income), backgroundColor: labels.map(l => tierColors[l]), borderRadius: 6 }] },
+                    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+                });
+                new Chart(document.getElementById('intRateChart'), {
+                    type: 'bar',
+                    data: { labels, datasets: [{ data: labels.map(l => data[l].avg_int_rate), backgroundColor: labels.map(l => tierColors[l]), borderRadius: 6 }] },
+                    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+                });
+            });
+
+        fetch("{% url 'loan_grade_by_tier_api' %}")
+            .then(r => r.json())
+            .then(data => {
+                const tiers = ['Low', 'Medium', 'High'].filter(t => t in data);
+                const grades = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+                const datasets = grades.map((g, i) => ({
+                    label: g,
+                    data: tiers.map(t => data[t][g] || 0),
+                    backgroundColor: palette[i % palette.length]
+                }));
+                new Chart(document.getElementById('loanGradeChart'), {
+                    type: 'bar',
+                    data: { labels: tiers, datasets },
+                    options: { responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true } } }
+                });
+            });
+
+        fetch("{% url 'home_ownership_api' %}")
+            .then(r => r.json())
+            .then(data => {
+                new Chart(document.getElementById('homeOwnershipChart'), {
+                    type: 'pie',
+                    data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: palette }] },
+                    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+                });
+            });
+
+        fetch("{% url 'high_risk_loan_intent_api' %}")
+            .then(r => r.json())
+            .then(data => {
+                new Chart(document.getElementById('highRiskIntentChart'), {
+                    type: 'pie',
+                    data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: palette }] },
+                    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+                });
+            });
+
+        fetch("{% url 'risk_by_age_group_api' %}")
+            .then(r => r.json())
+            .then(data => {
+                const labels = Object.keys(data);
+                new Chart(document.getElementById('ageGroupChart'), {
+                    type: 'line',
+                    data: { labels, datasets: [{ label: 'Avg Risk Score', data: Object.values(data), borderColor: '#A6192E', backgroundColor: '#FBEAEC', fill: true, tension: 0.3 }] },
+                    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
                 });
             });
     </script>
-</body>
-</html>
+{% endblock %}

@@ -1,66 +1,98 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Customer Risk Lookup</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 600px; margin: 60px auto; }
-        input[type=text] { padding: 8px; width: 250px; }
-        button { padding: 8px 16px; }
-        .result { margin-top: 30px; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
-        .error { color: red; margin-top: 20px; }
-        .tier-high { color: white; background: #d9534f; padding: 4px 10px; border-radius: 4px; }
-        .tier-medium { color: white; background: #f0ad4e; padding: 4px 10px; border-radius: 4px; }
-        .tier-low { color: white; background: #5cb85c; padding: 4px 10px; border-radius: 4px; }
-        .tier-unscored { color: white; background: #999; padding: 4px 10px; border-radius: 4px; }
-    </style>
-</head>
-<body>
-    <h1>Customer Risk Lookup</h1>
+{% extends 'scoring/base.html' %}
+{% block title %}Customer Lookup — RiskLens{% endblock %}
+{% block nav_lookup %}active{% endblock %}
 
-    <form method="post">
-        {% csrf_token %}
-        <input type="text" name="customer_id" placeholder="e.g. CUST_00001" required>
-        <button type="submit">Search</button>
-    </form>
+{% block content %}
+    <h1>Customer Lookup</h1>
+    <p class="subtitle">Search a customer ID to view their risk profile.</p>
 
-    {% if error %}
-        <p class="error">{{ error }}</p>
-    {% endif %}
+    <div class="card floating">
+        <form method="post" style="display:flex; gap:10px;">
+            {% csrf_token %}
+            <input type="text" name="customer_id" placeholder="CUST_00001" required
+                   value="{{ request.POST.customer_id|default:'' }}">
+            <button type="submit">Search</button>
+        </form>
+
+        {% if error %}
+            <div class="error-box">{{ error }}</div>
+        {% endif %}
+    </div>
 
     {% if customer %}
-        <div class="result">
-            <h2>{{ customer.customer_id }}</h2>
-
-            <p>
-                Risk Tier:
-                {% if customer.risk_tier == 'High' %}
-                    <span class="tier-high">HIGH</span>
-                {% elif customer.risk_tier == 'Medium' %}
-                    <span class="tier-medium">MEDIUM</span>
-                {% elif customer.risk_tier == 'Low' %}
-                    <span class="tier-low">LOW</span>
-                {% else %}
-                    <span class="tier-unscored">NOT YET SCORED</span>
-                {% endif %}
-            </p>
+        <div class="card floating" style="margin-top:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <div style="font-family:'IBM Plex Mono',monospace; font-size:21px; font-weight:600;">
+                        {{ customer.customer_id }}
+                    </div>
+                </div>
+                <span class="tier-badge tier-{{ customer.risk_tier|default:'Unscored' }}">
+                    {{ customer.risk_tier|default:'Not yet scored' }}
+                </span>
+            </div>
 
             {% if customer.risk_score %}
-                <p>Risk Score: {{ customer.risk_score }}</p>
+                {% widthratio customer.risk_score 1 100 as score_pct %}
+                <div style="margin-top:18px;">
+                    <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted); margin-bottom:5px;">
+                        <span>RISK SCORE</span>
+                        <span style="font-family:'IBM Plex Mono',monospace; color:var(--text); font-weight:600;">{{ customer.risk_score }}</span>
+                    </div>
+                    <div style="height:8px; background:var(--border); border-radius:5px; overflow:hidden;">
+                        <div style="height:100%; width:{{ score_pct }}%;" class="score-fill tier-fill-{{ customer.risk_tier }}"></div>
+                    </div>
+                </div>
             {% endif %}
 
-            <hr>
-            <p><strong>Age:</strong> {{ customer.person_age }}</p>
-            <p><strong>Income:</strong> {{ customer.person_income }}</p>
-            <p><strong>Employment length:</strong> {{ customer.person_emp_length }} years</p>
-            <p><strong>Home ownership:</strong> {{ customer.person_home_ownership }}</p>
-            <p><strong>Loan intent:</strong> {{ customer.loan_intent }}</p>
-            <p><strong>Loan grade:</strong> {{ customer.loan_grade }}</p>
-            <p><strong>Loan amount:</strong> {{ customer.loan_amnt }}</p>
-            <p><strong>Interest rate:</strong> {{ customer.loan_int_rate }}%</p>
-            <p><strong>Loan % of income:</strong> {{ customer.loan_percent_income }}</p>
-            <p><strong>Prior default on file:</strong> {{ customer.cb_person_default_on_file }}</p>
-            <p><strong>Credit history length:</strong> {{ customer.cb_person_cred_hist_length }} years</p>
+            <hr style="border:none; border-top:1px solid var(--border); margin:22px 0;">
+
+            <div class="detail-grid">
+                <div class="detail-row">
+                    <div class="label">Age</div>
+                    <div class="value">{{ customer.person_age }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">Income</div>
+                    <div class="value">${{ customer.person_income }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">Employment Length</div>
+                    <div class="value">{{ customer.person_emp_length }} yrs</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">Home Ownership</div>
+                    <div class="value">{{ customer.person_home_ownership }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">Loan Intent</div>
+                    <div class="value">{{ customer.loan_intent }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">Loan Grade</div>
+                    <div class="value">{{ customer.loan_grade }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">Loan Amount</div>
+                    <div class="value">${{ customer.loan_amnt }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">Interest Rate</div>
+                    <div class="value">{{ customer.loan_int_rate }}%</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">Loan % of Income</div>
+                    <div class="value">{{ customer.loan_percent_income }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">Prior Default on File</div>
+                    <div class="value">{{ customer.cb_person_default_on_file }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">Credit History Length</div>
+                    <div class="value">{{ customer.cb_person_cred_hist_length }} yrs</div>
+                </div>
+            </div>
         </div>
     {% endif %}
-</body>
-</html>
+{% endblock %}
