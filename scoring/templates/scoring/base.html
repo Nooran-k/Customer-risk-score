@@ -245,6 +245,8 @@
         <nav>
             <a href="{% url 'customer_lookup' %}" class="{% block nav_lookup %}{% endblock %}">Customer Lookup</a>
             <a href="{% url 'dashboard' %}" class="{% block nav_dashboard %}{% endblock %}">Dashboard</a>
+            <a href="{% url 'add_customer' %}" class="{% block nav_add %}{% endblock %}">Add Customer</a>
+            <a href="{% url 'predict_from_excel' %}" class="{% block nav_bulk %}{% endblock %}">Bulk Upload</a>
         </nav>
     </div>
     <main>

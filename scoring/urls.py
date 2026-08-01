@@ -11,4 +11,5 @@ urlpatterns = [
     path('api/high-risk-loan-intent/', views.high_risk_loan_intent_api, name='high_risk_loan_intent_api'),
     path('api/risk-by-age-group/', views.risk_by_age_group_api, name='risk_by_age_group_api'),
     path('predict-excel/', views.predict_from_excel, name='predict_from_excel'),
+    path('add-customer/', views.add_customer, name='add_customer'),
 ]

@@ -19,5 +19,3 @@ db.sqlite3
 # Data files (anywhere in the repo)
 *.csv
 
-# Trained models (anywhere in the repo)
-*.pkl

@@ -1,0 +1,102 @@
+{% extends 'scoring/base.html' %}
+{% block title %}Add Customer — RiskLens{% endblock %}
+{% block nav_add %}active{% endblock %}
+
+{% block content %}
+    <h1>Add New Customer</h1>
+    <p class="subtitle">Enter applicant details to generate an instant risk assessment.</p>
+
+    <div class="card floating">
+        <form method="post">
+            {% csrf_token %}
+            <div class="detail-grid">
+                <div class="detail-row">
+                    <div class="label">Age</div>
+                    <input type="number" name="person_age" required style="width:100%;">
+                </div>
+                <div class="detail-row">
+                    <div class="label">Income ($)</div>
+                    <input type="number" step="0.01" name="person_income" required style="width:100%;">
+                </div>
+                <div class="detail-row">
+                    <div class="label">Employment Length (yrs)</div>
+                    <input type="number" step="0.1" name="person_emp_length" required style="width:100%;">
+                </div>
+                <div class="detail-row">
+                    <div class="label">Home Ownership</div>
+                    <select name="person_home_ownership" required style="width:100%; padding:10px;">
+                        <option value="RENT">RENT</option>
+                        <option value="MORTGAGE">MORTGAGE</option>
+                        <option value="OWN">OWN</option>
+                        <option value="OTHER">OTHER</option>
+                    </select>
+                </div>
+                <div class="detail-row">
+                    <div class="label">Loan Intent</div>
+                    <select name="loan_intent" required style="width:100%; padding:10px;">
+                        <option value="PERSONAL">PERSONAL</option>
+                        <option value="EDUCATION">EDUCATION</option>
+                        <option value="MEDICAL">MEDICAL</option>
+                        <option value="VENTURE">VENTURE</option>
+                        <option value="HOMEIMPROVEMENT">HOMEIMPROVEMENT</option>
+                        <option value="DEBTCONSOLIDATION">DEBTCONSOLIDATION</option>
+                    </select>
+                </div>
+                <div class="detail-row">
+                    <div class="label">Loan Grade</div>
+                    <select name="loan_grade" required style="width:100%; padding:10px;">
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                        <option value="E">E</option>
+                        <option value="F">F</option>
+                        <option value="G">G</option>
+                    </select>
+                </div>
+                <div class="detail-row">
+                    <div class="label">Loan Amount ($)</div>
+                    <input type="number" step="0.01" name="loan_amnt" required style="width:100%;">
+                </div>
+                <div class="detail-row">
+                    <div class="label">Interest Rate (%)</div>
+                    <input type="number" step="0.01" name="loan_int_rate" required style="width:100%;">
+                </div>
+                <div class="detail-row">
+                    <div class="label">Loan % of Income</div>
+                    <input type="number" step="0.01" name="loan_percent_income" required style="width:100%;">
+                </div>
+                <div class="detail-row">
+                    <div class="label">Prior Default on File</div>
+                    <select name="cb_person_default_on_file" required style="width:100%; padding:10px;">
+                        <option value="N">N</option>
+                        <option value="Y">Y</option>
+                    </select>
+                </div>
+                <div class="detail-row">
+                    <div class="label">Credit History Length (yrs)</div>
+                    <input type="number" name="cb_person_cred_hist_length" required style="width:100%;">
+                </div>
+            </div>
+            <button type="submit" style="margin-top:24px;">Generate Risk Score</button>
+        </form>
+
+        {% if error %}
+            <div class="error-box">{{ error }}</div>
+        {% endif %}
+    </div>
+
+    {% if result %}
+        <div class="card floating" style="margin-top:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:18px; font-weight:600;">
+                    {{ result.customer_id }} — Saved
+                </div>
+                <span class="tier-badge tier-{{ result.risk_tier }}">{{ result.risk_tier }}</span>
+            </div>
+            <p style="margin-top:10px; color:var(--text-muted); font-size:14px;">
+                Risk Score: <strong>{{ result.risk_score }}</strong>
+            </p>
+        </div>
+    {% endif %}
+{% endblock %}
