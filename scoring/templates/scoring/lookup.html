@@ -27,9 +27,15 @@
                         {{ customer.customer_id }}
                     </div>
                 </div>
-                <span class="tier-badge tier-{{ customer.risk_tier|default:'Unscored' }}">
-                    {{ customer.risk_tier|default:'Not yet scored' }}
-                </span>
+                <div style="display:flex; align-items:center; gap:10px;">
+    <span class="tier-badge tier-{{ customer.risk_tier|default:'Unscored' }}">
+        {{ customer.risk_tier|default:'Not yet scored' }}
+    </span>
+    <a href="{% url 'customer_pdf' customer.customer_id %}"
+       style="font-size:12px; font-weight:700; color:var(--red); text-decoration:none; padding:6px 12px; border:1.5px solid var(--red); border-radius:20px;">
+        Download PDF
+    </a>
+</div>
             </div>
 
             {% if customer.risk_score %}

@@ -12,4 +12,5 @@ urlpatterns = [
     path('api/risk-by-age-group/', views.risk_by_age_group_api, name='risk_by_age_group_api'),
     path('predict-excel/', views.predict_from_excel, name='predict_from_excel'),
     path('add-customer/', views.add_customer, name='add_customer'),
+    path('customer/<str:customer_id>/pdf/', views.customer_pdf, name='customer_pdf'),
 ]
